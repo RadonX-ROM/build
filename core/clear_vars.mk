@@ -256,3 +256,8 @@ LOCAL_IGNORE_SUBDIR:=
 # Leave the current makefile to make sure we don't break anything
 # that expects to be able to find the name of the current makefile.
 MAKEFILE_LIST := $(lastword $(MAKEFILE_LIST))
+
+ifdef SM_VENDOR
+  # Include sabermod clean_vars
+  include $(SM_VENDOR)/build/clear_vars.mk
+endif
