@@ -85,7 +85,7 @@ $(info   BUILD_ID=$(BUILD_ID))
 $(info   OUT_DIR=$(OUT_DIR))
 $(info ============================================)
 ifdef SM_VENDOR
-  # Include sabermod clean_vars
-  include $(SM_VENDOR)/build/clear_vars.mk
+  # Include sabermod dumpvar.mk
+  include $(SM_VENDOR)/build/dumpvar.mk
 endif
 endif
