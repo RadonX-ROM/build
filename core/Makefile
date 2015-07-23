@@ -1719,13 +1719,6 @@ RADONX_TARGET_PACKAGE := $(PRODUCT_OUT)/$(RADONX_MOD_VERSION).zip
 .PHONY: otapackage bacon bootzip
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 
-ifeq ($(USE_PREBUILT_CHROMIUM),1)
-ifneq ($(PRODUCT_PREBUILT_WEBVIEWCHROMIUM),yes)
-	@echo "Running Chromium prebuilt setup script..."
-	$(hide) . $(TOPDIR)vendor/rnx/tools/chromium_prebuilt.sh $(TOP)
-endif
-endif
-
 bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(RADONX_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(RADONX_TARGET_PACKAGE) > $(RADONX_TARGET_PACKAGE).md5sum
@@ -1765,7 +1758,6 @@ $(INTERNAL_FACTORY_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 
 .PHONY: factorypackage
 factorypackage: $(INTERNAL_FACTORY_PACKAGE_TARGET)
-
 endif    # recovery_fstab is defined
 endif    # TARGET_NO_KERNEL != true
 endif    # TARGET_DEVICE != generic*
