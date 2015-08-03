@@ -38,15 +38,15 @@ ifeq ($(BUILD_OS),linux)
 			 -mllvm -polly-allow-nonaffine=1\
 			 -mllvm -polly-ignore-aliasing=1 \
 			 -mllvm -polly-ast-detect-parallel \
-			 -mllvm -polly-disable-multiplicative-reductions 
+			 -mllvm -polly-disable-multiplicative-reductions
 else
-  POLLYCC := 
+  POLLYCC :=
 endif
 
 # Use AOSP LLVM and Clang on certain modules
 USE_AOSP_CLANG := \
-		v8_tools_gyp_v8_%_arm_host_gyp% 
-			
+		v8_tools_gyp_v8_base_arm_host_gyp%
+
 ifeq ($(LOCAL_CLANG),true)
   ifeq (1,$(words $(filter $(USE_AOSP_CLANG),$(LOCAL_MODULE))))
     LLVM_PREBUILTS_PATH := $(AOSP_LLVM_PREBUILTS_PATH)
@@ -67,20 +67,22 @@ endif
 
 # Disable Polly flags for certain modules
 DISABLE_POLLY := \
-		v8_tools_gyp_v8_%_arm_host_gyp%
+		v8_tools_gyp_v8_base_arm_host_gyp%
 
-ifeq ($(LOCAL_CLANG),true)
-  ifdef POLLYCC
-    ifneq (1,$(words $(filter $(DISABLE_POLLY),$(LOCAL_MODULE))))
-      ifdef LOCAL_CFLAGS
-        LOCAL_CFLAGS += $(POLLYCC)
-      else
-        LOCAL_CFLAGS := $(POLLYCC)
-      endif
-      ifdef LOCAL_CPPFLAGS
-        LOCAL_CPPFLAGS += $(POLLYCC)
-      else
-        LOCAL_CPPFLAGS := $(POLLYCC)
+ifneq ($(TARGET_CLANG_VERSION),3.5)
+  ifeq ($(LOCAL_CLANG),true)
+    ifdef POLLYCC
+      ifneq (1,$(words $(filter $(DISABLE_POLLY),$(LOCAL_MODULE))))
+        ifdef LOCAL_CFLAGS
+          LOCAL_CFLAGS += $(POLLYCC)
+        else
+          LOCAL_CFLAGS := $(POLLYCC)
+        endif
+        ifdef LOCAL_CPPFLAGS
+          LOCAL_CPPFLAGS += $(POLLYCC)
+        else
+          LOCAL_CPPFLAGS := $(POLLYCC)
+        endif
       endif
     endif
   endif
