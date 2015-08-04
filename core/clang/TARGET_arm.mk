@@ -1,4 +1,5 @@
 
+include $(BUILD_SYSTEM)/clang/TARGET_qcom.mk
 include $(BUILD_SYSTEM)/clang/arm.mk
 
 CLANG_CONFIG_arm_TARGET_TRIPLE := arm-linux-androideabi
@@ -12,6 +13,7 @@ CLANG_CONFIG_arm_TARGET_EXTRA_ASFLAGS := \
   -target $(CLANG_CONFIG_arm_TARGET_TRIPLE) \
   -B$(CLANG_CONFIG_arm_TARGET_TOOLCHAIN_PREFIX)
 
+ifneq ($(LOCAL_CLANG_IS_QCOM),true)
 CLANG_CONFIG_arm_TARGET_EXTRA_CFLAGS := \
   $(CLANG_CONFIG_EXTRA_CFLAGS) \
   $(CLANG_CONFIG_TARGET_EXTRA_CFLAGS) \
@@ -40,6 +42,7 @@ define $(clang_2nd_arch_prefix)convert-to-clang-flags
   $(1))))
 endef
 
+
 $(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CFLAGS := \
   $(call $(clang_2nd_arch_prefix)convert-to-clang-flags,$($(clang_2nd_arch_prefix)TARGET_GLOBAL_CFLAGS)) \
   $(CLANG_CONFIG_arm_TARGET_EXTRA_CFLAGS)
@@ -51,6 +54,12 @@ $(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CPPFLAGS := \
 $(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_LDFLAGS := \
   $(call $(clang_2nd_arch_prefix)convert-to-clang-flags,$($(clang_2nd_arch_prefix)TARGET_GLOBAL_LDFLAGS)) \
   $(CLANG_CONFIG_arm_TARGET_EXTRA_LDFLAGS)
+else
+$(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CFLAGS := $(CLANG_QCOM_TARGET_GLOBAL_CFLAGS)
+$(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_CPPFLAGS := $(CLANG_QCOM_TARGET_GLOBAL_CPPFLAGS)
+$(clang_2nd_arch_prefix)CLANG_TARGET_GLOBAL_LDFLAGS := $(CLANG_QCOM_TARGET_GLOBAL_LDFLAGS)
+endif
+
 
 $(clang_2nd_arch_prefix)RS_TRIPLE := armv7-none-linux-gnueabi
 $(clang_2nd_arch_prefix)RS_TRIPLE_CFLAGS :=

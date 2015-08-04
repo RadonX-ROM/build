@@ -8,6 +8,7 @@
 #########################################
 include $(BUILD_SYSTEM)/base_rules.mk
 include $(BUILD_SYSTEM)/clang/config.mk
+include $(BUILD_SYSTEM)/clang/TARGET_arm.mk
 #########################################
 
 my_ndk_sysroot :=

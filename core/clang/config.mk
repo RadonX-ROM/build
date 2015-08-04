@@ -13,6 +13,10 @@ else
   TARGET_CLANG_VERSION := $(TARGET_CLANG_VERSION_EXP)
 endif
 
+# Check for QCOM target
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+ export TARGET_QCOM_CLANG := true
+endif
 
 # Set paths for AOSP LLVM and Clang
 AOSP_LLVM_PREBUILTS_PATH := prebuilts/clang/$(BUILD_OS)-x86/host/3.5/bin
@@ -44,25 +48,34 @@ else
 endif
 
 # Use AOSP LLVM and Clang on certain modules
-USE_AOSP_CLANG := \
+export USE_AOSP_CLANG := \
 		v8_tools_gyp_v8_base_arm_host_gyp%
 
 ifeq ($(LOCAL_CLANG),true)
-  ifeq (1,$(words $(filter $(USE_AOSP_CLANG),$(LOCAL_MODULE))))
-    LLVM_PREBUILTS_PATH := $(AOSP_LLVM_PREBUILTS_PATH)
-    LLVM_PREBUILTS_HEADER_PATH := $(AOSP_LLVM_PREBUILTS_HEADER_PATH)
-    CLANG := $(AOSP_CLANG)
-    CLANG_CXX := $(AOSP_CLANG_CXX)
-    LLVM_AS := $(AOSP_LLVM_AS)
-    LLVM_LINK := $(AOSP_LLVM_LINK)
-  else
-    LLVM_PREBUILTS_PATH := $(CUSTOM_LLVM_PREBUILTS_PATH)
-    LLVM_PREBUILTS_HEADER_PATH := $(CUSTOM_LLVM_PREBUILTS_HEADER_PATH)
-    CLANG := $(CUSTOM_CLANG)
-    CLANG_CXX := $(CUSTOM_CLANG_CXX)
-    LLVM_AS := $(CUSTOM_LLVM_AS)
-    LLVM_LINK := $(CUSTOM_LLVM_LINK)
-  endif
+  ifeq ($(BUILD_OS),linux)
+    ifeq (1,$(words $(filter $(USE_AOSP_CLANG),$(LOCAL_MODULE))))
+      LLVM_PREBUILTS_PATH := $(AOSP_LLVM_PREBUILTS_PATH)
+      LLVM_PREBUILTS_HEADER_PATH := $(AOSP_LLVM_PREBUILTS_HEADER_PATH)
+      CLANG := $(AOSP_CLANG)
+      CLANG_CXX := $(AOSP_CLANG_CXX)
+      LLVM_AS := $(AOSP_LLVM_AS)
+      LLVM_LINK := $(AOSP_LLVM_LINK)
+    else
+      LLVM_PREBUILTS_PATH := $(CUSTOM_LLVM_PREBUILTS_PATH)
+      LLVM_PREBUILTS_HEADER_PATH := $(CUSTOM_LLVM_PREBUILTS_HEADER_PATH)
+      CLANG := $(CUSTOM_CLANG)
+      CLANG_CXX := $(CUSTOM_CLANG_CXX)
+      LLVM_AS := $(CUSTOM_LLVM_AS)
+      LLVM_LINK := $(CUSTOM_LLVM_LINK)
+    endif
+	else
+  	LLVM_PREBUILTS_PATH := $(AOSP_LLVM_PREBUILTS_PATH)
+  	LLVM_PREBUILTS_HEADER_PATH := $(AOSP_LLVM_PREBUILTS_HEADER_PATH)
+  	CLANG := $(AOSP_CLANG)
+  	CLANG_CXX := $(AOSP_CLANG_CXX)
+  	LLVM_AS := $(AOSP_LLVM_AS)
+  	LLVM_LINK := $(AOSP_LLVM_LINK)
+	endif
 endif
 
 # Disable Polly flags for certain modules
@@ -71,23 +84,25 @@ DISABLE_POLLY := \
 
 ifneq ($(TARGET_CLANG_VERSION),3.5)
   ifeq ($(LOCAL_CLANG),true)
-    ifdef POLLYCC
-      ifneq (1,$(words $(filter $(DISABLE_POLLY),$(LOCAL_MODULE))))
-        ifdef LOCAL_CFLAGS
-          LOCAL_CFLAGS += $(POLLYCC)
-        else
-          LOCAL_CFLAGS := $(POLLYCC)
-        endif
-        ifdef LOCAL_CPPFLAGS
-          LOCAL_CPPFLAGS += $(POLLYCC)
-        else
-          LOCAL_CPPFLAGS := $(POLLYCC)
-        endif
+    ifneq (1,$(words $(filter $(DISABLE_POLLY),$(LOCAL_MODULE))))
+      ifdef LOCAL_CFLAGS
+        LOCAL_CFLAGS += $(POLLYCC)
+      else
+        LOCAL_CFLAGS := $(POLLYCC)
+      endif
+      ifdef LOCAL_CPPFLAGS
+        LOCAL_CPPFLAGS += $(POLLYCC)
+      else
+        LOCAL_CPPFLAGS := $(POLLYCC)
       endif
     endif
   endif
 endif
 
+# Include TARGET_qcom.mk for QCOM devices.
+ifeq ($(TARGET_QCOM_CLANG),true)
+  include $(BUILD_SYSTEM)/clang/TARGET_qcom.mk
+endif
 
 # The C/C++ compiler can be wrapped by setting the CC/CXX_WRAPPER vars.
 ifdef CC_WRAPPER
@@ -132,10 +147,10 @@ CLANG_CONFIG_UNKNOWN_CFLAGS := \
   -fno-canonical-system-headers
 
 # Clang flags for all host rules
-CLANG_CONFIG_HOST_EXTRA_ASFLAGS :=
-CLANG_CONFIG_HOST_EXTRA_CFLAGS :=
-CLANG_CONFIG_HOST_EXTRA_CPPFLAGS :=
-CLANG_CONFIG_HOST_EXTRA_LDFLAGS :=
+CLANG_CONFIG_HOST_EXTRA_ASFLAGS := -w
+CLANG_CONFIG_HOST_EXTRA_CFLAGS := -w
+CLANG_CONFIG_HOST_EXTRA_CPPFLAGS := -w
+CLANG_CONFIG_HOST_EXTRA_LDFLAGS := -w
 
 # Clang flags for all target rules
 CLANG_CONFIG_TARGET_EXTRA_ASFLAGS :=
