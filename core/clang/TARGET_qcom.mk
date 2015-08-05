@@ -10,18 +10,28 @@ QCOM_LLVM_LINK := $(QCOM_LLVM_PREBUILTS_PATH)/llvm-link$(BUILD_EXECUTABLE_SUFFIX
 
 # Only use QCOM LLVM Clang on TARGET modules that aren't disabled.
 DISABLE_QCOM_CLANG := \
-						libcompiler_rt% \
+						libcompiler_rt \
 						libscrypt_static \
 						libcrypto \
 						libjni_latinime_common_static \
 						libdl \
-						libz
+						libz \
+						libpdfium \
+						libc% \
+						libexpat \
+						libRSSupport \
+						libjni_latinime \
+						libpng \
+						libclcore.bc \
+						libclcore_debug.bc \
+						libclcore_neon.bc \
+						libnetd_client 
 
 ifeq ($(TARGET_QCOM_CLANG),true)
   ifeq ($(LOCAL_CLANG),true)
     ifeq ($(BUILD_OS),linux)
   	  ifneq ($(strip $(LOCAL_IS_HOST_MODULE)),true)
-			  ifneq (1,$(words $(filter $(DISABLE_QCOM_CLANG),$(LOCAL_MODULE))))
+		ifneq ($(LOCAL_MODULE),$(filter $(LOCAL_MODULE),$(DISABLE_QCOM_CLANG)))
           LLVM_PREBUILTS_PATH := $(QCOM_LLVM_PREBUILTS_PATH)
           LLVM_PREBUILTS_HEADER_PATH := $(QCOM_LLVM_PREBUILTS_HEADER_PATH)
           CLANG := $(QCOM_CLANG)

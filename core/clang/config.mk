@@ -49,7 +49,9 @@ endif
 
 # Use AOSP LLVM and Clang on certain modules
 export USE_AOSP_CLANG := \
-		v8_tools_gyp_v8_base_arm_host_gyp%
+		v8_tools_gyp_v8_base_arm_host_gyp% \
+		healthd \
+		libclcore%
 
 ifeq ($(LOCAL_CLANG),true)
   ifeq ($(BUILD_OS),linux)
