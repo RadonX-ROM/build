@@ -22,10 +22,26 @@ DISABLE_QCOM_CLANG := \
 						libRSSupport \
 						libjni_latinime \
 						libpng \
-						libclcore.bc \
-						libclcore_debug.bc \
-						libclcore_neon.bc \
-						libnetd_client 
+						libnetd_client \
+						healthd \
+						libc++ \
+						libnativebridge \
+						pngtest \
+						ndc \
+						libssl \
+						libLLVM \
+						libexif \
+						libbcinfo \
+						libnativehelper \
+						libRScpp \
+						libbcc \
+						netd \
+						bcc \
+						libsurfaceflinger \
+						libRS \
+						libRSCpuRef \
+						libRSDriver \
+						librsjni
 
 ifeq ($(TARGET_QCOM_CLANG),true)
   ifeq ($(LOCAL_CLANG),true)
@@ -41,22 +57,14 @@ ifeq ($(TARGET_QCOM_CLANG),true)
 					export LOCAL_CLANG_IS_QCOM := true
 				else
 				  export LOCAL_CLANG_IS_QCOM :=
-			  	ifeq (1,$(words $(filter $(USE_AOSP_CLANG),$(LOCAL_MODULE))))
-		        LLVM_PREBUILTS_PATH := $(AOSP_LLVM_PREBUILTS_PATH)
-		        LLVM_PREBUILTS_HEADER_PATH := $(AOSP_LLVM_PREBUILTS_HEADER_PATH)
-		        CLANG := $(AOSP_CLANG)
-		        CLANG_CXX := $(AOSP_CLANG_CXX)
-		        LLVM_AS := $(AOSP_LLVM_AS)
-		        LLVM_LINK := $(AOSP_LLVM_LINK)
-		      else
-		        LLVM_PREBUILTS_PATH := $(CUSTOM_LLVM_PREBUILTS_PATH)
-		        LLVM_PREBUILTS_HEADER_PATH := $(CUSTOM_LLVM_PREBUILTS_HEADER_PATH)
-		        CLANG := $(CUSTOM_CLANG)
-		        CLANG_CXX := $(CUSTOM_CLANG_CXX)
-		        LLVM_AS := $(CUSTOM_LLVM_AS)
-		        LLVM_LINK := $(CUSTOM_LLVM_LINK)
-		      endif
-        endif
+			  	LLVM_PREBUILTS_PATH := $(LLVM_PREBUILTS_PATH)
+			  	LLVM_PREBUILTS_HEADER_PATH := $(LLVM_PREBUILTS_HEADER_PATH)
+		  		CLANG := $(CLANG)
+		  		CLANG_CXX := $(CLANG_CXX)
+		  		LLVM_AS := $(LLVM_AS)
+		  		LLVM_LINK := $(LLVM_LINK)
+				  
+		endif
   	  endif
   	endif
   endif
@@ -88,7 +96,9 @@ CLANG_QCOM_CONFIG_LLVM_DEFAULT_FLAGS := \
   -ffunction-sections \
   -no-canonical-prefixes \
   -fstack-protector \
-  -funwind-tables
+  -funwind-tables \
+  -Wno-deprecated-declarations  \
+  -Wno-unused-parameter
 
 CLANG_QCOM_CONFIG_EXTRA_FLAGS := \
   -Wno-tautological-constant-out-of-range-compare \
@@ -124,11 +134,15 @@ CLANG_QCOM_CONFIG_KRAIT_MEM_FLAGS := \
   -mllvm -arm-opt-memcpy=1 \
   $(clang_qcom_muse-optlibc)
 
-
-#CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS := \
-#  -L $(libpath)/linux-propri_rt/ \
-#  -l clang_rt.translib32 \
-#  -fparallel
+CLANG_QCOM_CONFIG_KRAIT_FLAGS := \
+  $(clang_qcom_mcpu) -mfpu=neon-vfpv4 -mfloat-abi=softfp -marm \
+  -fvectorize-loops \
+  -fomit-frame-pointer \
+  -foptimize-sibling-calls \
+  -funroll-loops \
+  -ffinite-math-only \
+  -funsafe-math-optimizations \
+  -fdata-sections \
 
 CLANG_QCOM_CONFIG_arm_UNKNOWN_CFLAGS := \
   -fipa-pta \
@@ -162,7 +176,8 @@ define subst-clang-qcom-incompatible-arm-flags
   $(subst -mcpu=cortex-a15,-mcpu=krait,\
   $(subst -mtune=cortex-a15,-mcpu=krait,\
   $(subst -mcpu=cortex-a8,-mcpu=scorpion,\
-  $(1)))))))
+  $(subst -mtune=cortex-a8,-mcpu=scorpion,\
+  $(1))))))))
 endef
 
 define convert-to-clang-qcom-flags
@@ -179,28 +194,32 @@ define convert-to-clang-qcom-ldflags
 endef
 
 CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CFLAGS := \
-  -nostdlibinc -DANDROID_SMP \
+  -nostdlibinc -DANDROID_SMP -w -no-integrated-as \
   -B$(CLANG_QCOM_CONFIG_arm_TARGET_TOOLCHAIN_PREFIX) \
   -target $(CLANG_QCOM_CONFIG_arm_TARGET_TRIPLE)
 
 CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CPPFLAGS := \
-  -nostdlibinc -DANDROID_SMP\
+  -nostdlibinc -DANDROID_SMP -w -no-integrated-as \
   -target $(CLANG_QCOM_CONFIG_arm_TARGET_TRIPLE)
 
 CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_LDFLAGS := \
   $(CLANG_QCOM_CONFIG_LLVM_DEFAULT_FLAGS) \
   $(CLANG_QCOM_CONFIG_KRAIT_MEM_FLAGS) \
   $(CLANG_QCOM_CONFIG_KRAIT_PARALLEL_FLAGS) \
-  -target $(CLANG_QCOM_CONFIG_arm_TARGET_TRIPLE)
+  -target $(CLANG_QCOM_CONFIG_arm_TARGET_TRIPLE) \
+   -no-integrated-as
 
 CLANG_QCOM_TARGET_GLOBAL_CFLAGS := \
   $(call convert-to-clang-qcom-flags,$(TARGET_GLOBAL_CFLAGS)) \
-  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CFLAGS)
+  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CFLAGS) \
+  $(CLANG_QCOM_CONFIG_KRAIT_FLAGS)
 
 CLANG_QCOM_TARGET_GLOBAL_CPPFLAGS := \
   $(call convert-to-clang-qcom-flags,$(TARGET_GLOBAL_CPPFLAGS)) \
-  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CPPFLAGS)
+  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_CPPFLAGS) \
+  $(CLANG_QCOM_CONFIG_KRAIT_FLAGS)
 
 CLANG_QCOM_TARGET_GLOBAL_LDFLAGS := \
   $(call convert-to-clang-qcom-ldflags,$(TARGET_GLOBAL_LDFLAGS)) \
-  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_LDFLAGS)
+  $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_LDFLAGS) \
+  $(CLANG_QCOM_CONFIG_KRAIT_FLAGS)
