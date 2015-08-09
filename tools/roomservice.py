@@ -39,31 +39,77 @@ except ImportError:
     urllib.parse = urlparse
     urllib.request = urllib2
 
-DEBUG = False
-default_manifest = ".repo/manifest.xml"
+# Config
+# set this to the default remote to use in repo
+default_rem = "gh"
+# set this to the default revision to use (branch/tag name)
+default_rev = "lp-mr1"
+# set this to the remote that you use for projects from your team repos
+# example fetch="https://github.com/RadonX-ROM"
+default_team_rem = "gh"
+# this shouldn't change unless google makes changes
+local_manifest_dir = ".repo/local_manifests"
+# change this to your name on github (or equivalent hosting)
+android_team = "RadonX-ROM"
 
-custom_local_manifest = ".repo/local_manifests/slim_manifest.xml"
-custom_default_revision = "lp5.0"
-custom_dependencies = "slim.dependencies"
-org_manifest = "SlimRoms"  # leave empty if org is provided in manifest
-org_display = "SlimRoms"  # needed for displaying
+def check_repo_exists(git_data):
+    if not int(git_data.get('total_count', 0)):
+        raise Exception("{} not found in {} Github, exiting "
+                        "roomservice".format(device, android_team))
 
-github_auth = None
+# Note that this can only be done 5 times per minute
+def search_github_for_device(device):
+    git_device = '+'.join(re.findall('[a-z]+|[\d]+', device))
+    git_search_url = "https://api.github.com/search/repositories" \
+                     "?q=%40{}+device+{}+fork:true".format(android_team, git_device)
+    git_req = urllib.request.Request(git_search_url)
+    # this api is a preview at the moment. accept the custom media type
+    git_req.add_header('Accept', 'application/vnd.github.preview')
+    try:
+        response = urllib.request.urlopen(git_req)
+    except urllib.request.HTTPError:
+        raise Exception("There was an issue connecting to github."
+                        " Please try again in a minute")
+    git_data = json.load(response)
+    check_repo_exists(git_data)
+    print("found the {} device repo".format(device))
+    return git_data
 
+def get_device_url(git_data):
+    device_url = ""
+    for item in git_data['items']:
+        temp_url = item.get('html_url')
+        if "{}/device".format(android_team) in temp_url:
+            try:
+                temp_url = temp_url[temp_url.index("device"):]
+            except ValueError:
+                pass
+            else:
+                if temp_url.endswith(device):
+                    device_url = temp_url
+                    break
 
-local_manifests = '.repo/local_manifests'
-if not os.path.exists(local_manifests):
-    os.makedirs(local_manifests)
+    if device_url:
+        return "{}/{}".format(android_team, device_url)
+    raise Exception("{} not found in {} Github, exiting "
+                    "roomservice".format(device, android_team))
 
+def parse_device_directory(device_url,device):
+    to_strip = "device"
+    repo_name = device_url[device_url.index(to_strip) + len(to_strip):]
+    repo_name = repo_name[:repo_name.index(device)]
+    repo_dir = repo_name.replace("_", "/")
+    repo_dir = repo_dir + device
+    return "device{}".format(repo_dir)
 
-def debug(*args, **kwargs):
-    if DEBUG:
-        print(*args, **kwargs)
-
-
-def add_auth(g_req):
-    global github_auth
-    if github_auth is None:
+# Thank you RaYmAn
+def iterate_manifests(check_all):
+    files = []
+    if check_all:
+        for file in os.listdir(local_manifest_dir):
+            files.append(os.path.join(local_manifest_dir, file))
+    files.append('.repo/manifest.xml')
+    for file in files:
         try:
             auth = netrc.netrc().authenticators("api.github.com")
         except (netrc.NetrcParseError, IOError):
