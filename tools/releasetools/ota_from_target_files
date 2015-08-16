@@ -1537,9 +1537,9 @@ def main(argv):
     elif o in ("--override_prop"):
       OPTIONS.override_prop = bool(a.lower() == 'true')
     elif o in ("-z", "--use_lzma"):
-      OPTIONS.use_lzma = True
+      OPTIONS.use_lzma = False
       # Import now, and bomb out if backports.lzma isn't installed
-      from backports import lzma
+     #  from backports import lzma
     else:
       return False
     return True

@@ -2339,11 +2339,6 @@ function mk_timer()
     return $ret
 }
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> f10c6f0... Revert "build: Add chromium prebuilt support to envsetup.sh && The core Makefile"
 function make()
 {
     mk_timer $(get_make_command) "$@"
