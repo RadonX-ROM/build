@@ -1082,7 +1082,7 @@ dirty:
 	@rm -rf $(OUT_DIR)/target/product/*/*.zip
 	@rm -rf $(OUT_DIR)/target/product/*/*.md5sum
 	@echo -e ${CL_GRN}"build.prop and zip files erased"${CL_RST}
-c
+
 # The Mia Special, cleans it just how Safvan and Chinmay like it ;)
 .PHONY: mia
 mia:  dirty installclean
