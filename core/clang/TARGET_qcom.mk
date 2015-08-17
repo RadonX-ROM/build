@@ -14,11 +14,8 @@ DISABLE_QCOM_CLANG := \
 						libscrypt_static \
 						libcrypto \
 						libjni_latinime_common_static \
-						libdl \
-						libz \
 						libpdfium \
 						libc% \
-						libexpat \
 						libRSSupport \
 						libjni_latinime \
 						libpng \
@@ -107,8 +104,7 @@ CLANG_QCOM_CONFIG_EXTRA_FLAGS := \
   -Wno-unused-local-typedef \
   -Wno-inconsistent-missing-override \
   -Wno-null-dereference \
-  -Wno-enum-compare \
-	-w
+  -Wno-enum-compare 
 
 ifeq ($(TARGET_CPU_VARIANT),krait)
   clang_qcom_mcpu := -mcpu=krait -muse-optlibc
@@ -143,6 +139,7 @@ CLANG_QCOM_CONFIG_KRAIT_FLAGS := \
   -ffinite-math-only \
   -funsafe-math-optimizations \
   -fdata-sections \
+  -w -pipe 
 
 CLANG_QCOM_CONFIG_arm_UNKNOWN_CFLAGS := \
   -fipa-pta \
@@ -222,4 +219,5 @@ CLANG_QCOM_TARGET_GLOBAL_CPPFLAGS := \
 CLANG_QCOM_TARGET_GLOBAL_LDFLAGS := \
   $(call convert-to-clang-qcom-ldflags,$(TARGET_GLOBAL_LDFLAGS)) \
   $(CLANG_QCOM_CONFIG_arm_TARGET_EXTRA_LDFLAGS) \
-  $(CLANG_QCOM_CONFIG_KRAIT_FLAGS)
+  $(CLANG_QCOM_CONFIG_KRAIT_FLAGS) \
+  $(CLANG_QCOM_CONFIG_KRAIT_MEM_FLAGS)
