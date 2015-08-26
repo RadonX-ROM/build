@@ -7,8 +7,6 @@
 
 #########################################
 include $(BUILD_SYSTEM)/base_rules.mk
-include $(BUILD_SYSTEM)/clang/config.mk
-include $(BUILD_SYSTEM)/clang/TARGET_arm.mk
 #########################################
 
 my_ndk_sysroot :=
@@ -103,6 +101,10 @@ ifdef SM_VENDOR
   # Include sabermod build system configs
   include $(SM_VENDOR)/build/sm.mk
 endif
+
+include $(BUILD_SYSTEM)/clang/config.mk
+include $(BUILD_SYSTEM)/clang/TARGET_arm.mk
+
 
 # The following LOCAL_ variables will be modified in this file.
 # Because the same LOCAL_ variables may be used to define modules for both 1st arch and 2nd arch,
